@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+streamlit
+langchain
+langchain-openai
+pypdf
+pydantic
+python-dotenv
+requests
+prometheus_client
+python-multipart
