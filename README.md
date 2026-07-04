@@ -26,6 +26,7 @@ A **Coordinator Agent** routes each user message to the right specialist agent (
 - **🔒 Privacy-aware resume handling** : resumes are parsed from PDF (via `Pypdf`) and PII (emails, phone numbers, LinkedIn/GitHub URLs) is masked **before** any text reaches the LLM.
 - **📊 Observability** : Prometheus metrics (`/metrics`), structured logging, and per-request execution traces.
 - **🖥️ Streamlit UI** : chat interface with agent-labeled responses, conditional resume upload, and an interview-mode input flow.
+- **🐳 Dockerized** — backend and frontend each run in their own container, wired together with `docker-compose`.
 
 ---
 
@@ -93,15 +94,22 @@ Interview session state (current question, job role/level, answered-question his
 │   └── interview_evaluation_prompt.txt
 │
 ├── utils/
-│   ├── prompt_loader.py         # Loads prompts into ChatPromptTemplat
-│   └── pii_masking.py           # mask_pii(text) 
-│
+│   ├── prompt_loader.py        # Loads prompts into ChatPromptTemplat
+│   └── pii_masking.py          # mask_pii(text) 
+│── Dockerfile                  # Backend image (FastAPI)
+├── Dockerfile.streamlit        # Frontend image (Streamlit)
+├── docker-compose.yml          # Wires backend + frontend together
+├── .dockerignore
 └── requirements.txt
 ```
 
 ---
 
 ## ⚙️ Setup
+
+You can run this project either locally with a virtualenv, or with Docker Compose.
+
+### Option A — Local (venv)
 
 ### 1. Clone & install dependencies
 
@@ -141,6 +149,42 @@ streamlit run streamlit.py
 Then open the URL Streamlit prints (typically `http://localhost:8501`).
 
 ![Streamlit Demo](UI.png)
+
+### Option B — Docker Compose
+
+#### 1. Add your `.env` file (same as above)
+
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+#### 2. Build and start both containers
+
+```bash
+docker compose up --build
+```
+
+This starts two containers:
+
+| Service    | Image built from        | Port   | Notes                                   |
+|------------|--------------------------|--------|------------------------------------------|
+| `backend`  | `Dockerfile`              | `8000` | FastAPI app, loads `.env` via `env_file` |
+| `frontend` | `Dockerfile.streamlit`    | `8501` | Streamlit UI, depends on `backend`, talks to it via `BACKEND_URL=http://backend:8000` |
+
+#### 3. Open the app
+
+- UI: `http://localhost:8501`
+- Backend API: `http://localhost:8000`
+- Metrics: `http://localhost:8000/metrics`
+
+#### 4. Stop everything
+
+```bash
+docker compose down
+```
+
+`.dockerignore` keeps `venv/`, `__pycache__/`, `.env`, `.git`, and `.streamlit/` out of the build context, so secrets and local artifacts never end up baked into an image.
+
 ---
 
 ## 🧠 How the Interview Loop Works
@@ -167,5 +211,7 @@ Then open the URL Streamlit prints (typically `http://localhost:8501`).
 - **pypdf** : PDF text extraction
 - **Prometheus client** : metrics
 - **Pydantic** : schema validation for every agent response
+- **Docker / docker-compose** — containerized backend + frontend
+
 
 
