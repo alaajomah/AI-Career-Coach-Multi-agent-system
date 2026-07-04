@@ -8,44 +8,39 @@ A **Coordinator Agent** routes each user message to the right specialist agent (
 
 ## ✨ Features
 
-- **🧭 Career Agent** — generates a structured career roadmap, required skills, recommended projects, and certifications for a stated goal.
-- **📄 Resume Agent** — reviews an uploaded resume against a career goal and returns an ATS score, strengths/weaknesses, missing skills, an improved summary, and section-by-section feedback.
-- **🎤 Interview Agent** — runs a continuous mock interview:
+- **🧭 Career Agent** : generates a structured career roadmap, required skills, recommended projects, and certifications for a stated goal.
+- **📄 Resume Agent** : reviews an uploaded resume against a career goal and returns an ATS score, strengths/weaknesses, missing skills, an improved summary, and section-by-section feedback.
+- **🎤 Interview Agent** : runs a continuous mock interview:
   - generates a question for the target role/level
   - evaluates the candidate's answer (score, strengths, weaknesses, missing points, improved answer)
   - immediately generates the **next** question, avoiding repeats of anything already asked
   - loops until the user explicitly clicks **End Interview**, then returns a session summary (average score, transcript)
-- **🤖 Coordinator Agent** — an LLM router that decides which agent should handle a message, with structured (Pydantic) output.
-- **🔒 Privacy-aware resume handling** — resumes are parsed from PDF (via `PyMuPDF` / `fitz`) and PII (emails, phone numbers, LinkedIn/GitHub URLs) is masked **before** any text reaches the LLM.
-- **📊 Observability** — Prometheus metrics (`/metrics`), structured logging, and per-request execution traces.
-- **🖥️ Streamlit UI** — chat interface with agent-labeled responses, conditional resume upload, and an interview-mode input flow.
+- **🤖 Coordinator Agent** : an LLM router that decides which agent should handle a message, with structured (Pydantic) output.
+- **🔒 Privacy-aware resume handling** : resumes are parsed from PDF (via `PyMuPDF` / `fitz`) and PII (emails, phone numbers, LinkedIn/GitHub URLs) is masked **before** any text reaches the LLM.
+- **📊 Observability** : Prometheus metrics (`/metrics`), structured logging, and per-request execution traces.
+- **🖥️ Streamlit UI** : chat interface with agent-labeled responses, conditional resume upload, and an interview-mode input flow.
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-                        ┌────────────────────┐
+                        ┌─────────────────────┐
                         │   Streamlit UI      │
                         │  (streamlit_app.py) │
                         └─────────┬───────────┘
                                   │ POST /chat
                                   ▼
                         ┌────────────────────┐
-                        │     FastAPI          │
-                        │      (app.py)        │
-                        └─────────┬───────────┘
+                        │     FastAPI        │
+                        │      (app.py)      │
+                        └─────────┬──────────┘
                                   │
                                   ▼
-                        ┌────────────────────┐
+                        ┌──────────────────────┐
                         │  CoordinatorAgent    │
                         │  (coordinator.py)    │
                         │                      │
-                        │  1. Active interview │
-                        │     session? →       │
-                        │     evaluate + next  │
-                        │     question         │
-                        │  2. Else → LLM router│
                         └───┬────────┬────────┬┘
                             │        │        │
                   ┌─────────▼──┐ ┌───▼─────┐ ┌▼───────────┐
@@ -103,8 +98,8 @@ Interview session state (current question, job role/level, answered-question his
 ### 1. Clone & install dependencies
 
 ```bash
-git clone https://github.com/<your-username>/ai-career-coach.git
-cd ai-career-coach
+git clone https://github.com/alaajomah/AI-Career-Coach-Multi-agent-system.git
+cd AI-Career-Coach-Multi-agent-system
 python -m venv venv
 source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
@@ -139,40 +134,6 @@ Then open the URL Streamlit prints (typically `http://localhost:8501`).
 
 ---
 
-## 🔌 API Reference
-
-### `POST /chat`
-
-**Request body**
-
-```json
-{
-  "user_id": "string",
-  "message": "string",
-  "resume": "string | null",
-  "level": "Junior | Mid | Senior"
-}
-```
-
-**Response body**
-
-```json
-{
-  "agent": "career | resume | interview | unknown",
-  "type": "advice | review | question | evaluation | session_end | no_session | error",
-  "response": { "...": "shape depends on agent/type, see schemas/" },
-  "memory": { "...": "stored user memory" }
-}
-```
-
-To end an active interview session, send `message` as the exact control string `__END_INTERVIEW__` — this is a literal sentinel, never inferred from natural language, so a genuine interview answer can never accidentally end the session.
-
-### `GET /metrics`
-
-Prometheus-formatted metrics: request count, error count, and request latency.
-
----
-
 ## 🧠 How the Interview Loop Works
 
 1. User asks for interview prep → router selects `interview` → a session starts (`interview_state.start_session`) and the first question is generated and stored as *pending*.
@@ -186,30 +147,16 @@ Prometheus-formatted metrics: request count, error count, and request latency.
 
 - Resumes are parsed locally from PDF using `PyMuPDF` (`fitz`) — no external parsing service.
 - `mask_pii()` strips emails, phone numbers, and LinkedIn/GitHub URLs from resume text **before** it is sent to the LLM.
-- User IDs are hashed (SHA-256) before being written to logs.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **LangChain** + **OpenAI (`gpt-4.1-mini`)** — structured LLM calls via Pydantic output parsing
-- **FastAPI** — backend API
-- **Streamlit** — chat UI
-- **PyMuPDF (`fitz`)** — PDF text extraction
-- **Prometheus client** — metrics
-- **Pydantic** — schema validation for every agent response
+- **LangChain** + **OpenAI (`gpt-4.1-mini`)** : structured LLM calls via Pydantic output parsing
+- **FastAPI** : backend API
+- **Streamlit** : chat UI
+- **PyMuPDF (`fitz`)** : PDF text extraction
+- **Prometheus client** : metrics
+- **Pydantic** : schema validation for every agent response
 
----
 
-## 📌 Roadmap / Ideas
-
-- [ ] Persist interview/session state in Redis instead of in-memory
-- [ ] Auto-end interview after N questions
-- [ ] Multi-turn resume revision (iterate on suggestions)
-- [ ] Auth + per-user history in a real database
-
----
-
-## 📄 License
-
-MIT — feel free to fork and adapt.
