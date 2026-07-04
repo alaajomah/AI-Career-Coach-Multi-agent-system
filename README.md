@@ -1,5 +1,12 @@
 # 🎯 AI Career Coach
 
+![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.1x-green?logo=fastapi)
+![LangChain](https://img.shields.io/badge/LangChain-Multi--Agent-orange)
+![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4.1-black?logo=openai)
+![Streamlit](https://img.shields.io/badge/Streamlit-UI-red?logo=streamlit)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
+
 A multi-agent AI system that helps users with **career guidance**, **resume review**, and **interview preparation** — powered by LangChain, OpenAI, FastAPI, and Streamlit.
 
 A **Coordinator Agent** routes each user message to the right specialist agent (Career / Resume / Interview), and the Interview Agent runs a full **continuous mock-interview loop**: it asks a question, evaluates your answer, immediately asks the next one, and keeps going until you choose to end the session.
