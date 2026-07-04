@@ -58,14 +58,15 @@ Interview session state (current question, job role/level, answered-question his
 
 ```
 .
-├── app.py                     # FastAPI entrypoint (/chat, /metrics)
+├── app.py                      # FastAPI entrypoint (/chat, /metrics)
 ├── coordinator.py              # Routing + interview-loop orchestration
 ├── interview_state.py          # Per-user interview session store
 ├── memory.py                   # User memory (career goal, history)
 ├── logging_config.py           # Structured logging setup
 ├── traces.py                   # Per-request execution trace saving
 ├── metrics.py                  # Prometheus counters/histograms
-├── streamlit_app.py            # Streamlit chat UI
+├── ui_components.py            # Turns structured agent responses
+├── streamlit.py                # Streamlit chat UI
 │
 ├── agents/
 │   ├── career_agent.py
@@ -73,10 +74,10 @@ Interview session state (current question, job role/level, answered-question his
 │   └── interview_agent.py
 │
 ├── schemas/
-│   ├── career.py                # CareerAdvice, CareerRoadmapStep, ...
-│   ├── resume_review.py          # ResumeReview, MissingSkills, ...
-│   ├── interview.py               # InterviewQuestion, InterviewEvaluation
-│   └── router.py                  # RouterDecision
+│   ├── career.py               # CareerAdvice, CareerRoadmapStep, ...
+│   ├── resume_review.py        # ResumeReview, MissingSkills, ...
+│   ├── interview.py            # InterviewQuestion, InterviewEvaluation
+│   └── router.py               # RouterDecision
 │
 ├── prompts/
 │   ├── career_prompt.txt
@@ -85,8 +86,8 @@ Interview session state (current question, job role/level, answered-question his
 │   └── interview_evaluation_prompt.txt
 │
 ├── utils/
-│   ├── prompt_loader.py           # Loads prompts/*.txt into ChatPromptTemplate
-│   └── pii_masking.py              # mask_pii(text) -> str
+│   ├── prompt_loader.py         # Loads prompts into ChatPromptTemplat
+│   └── pii_masking.py           # mask_pii(text) 
 │
 └── requirements.txt
 ```
@@ -127,7 +128,7 @@ uvicorn app:app --reload --port 8000
 In a separate terminal:
 
 ```bash
-streamlit run streamlit_app.py
+streamlit run streamlit.py
 ```
 
 Then open the URL Streamlit prints (typically `http://localhost:8501`).
@@ -155,7 +156,7 @@ Then open the URL Streamlit prints (typically `http://localhost:8501`).
 - **LangChain** + **OpenAI (`gpt-4.1-mini`)** : structured LLM calls via Pydantic output parsing
 - **FastAPI** : backend API
 - **Streamlit** : chat UI
-- **PyMuPDF (`fitz`)** : PDF text extraction
+- **pypdf** : PDF text extraction
 - **Prometheus client** : metrics
 - **Pydantic** : schema validation for every agent response
 
