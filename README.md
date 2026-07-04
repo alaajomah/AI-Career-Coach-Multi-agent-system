@@ -139,6 +139,7 @@ streamlit run streamlit.py
 ```
 
 Then open the URL Streamlit prints (typically `http://localhost:8501`).
+
 ![Streamlit Demo](UI.png)
 ---
 
