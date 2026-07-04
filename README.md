@@ -16,7 +16,7 @@ A **Coordinator Agent** routes each user message to the right specialist agent (
   - immediately generates the **next** question, avoiding repeats of anything already asked
   - loops until the user explicitly clicks **End Interview**, then returns a session summary (average score, transcript)
 - **🤖 Coordinator Agent** : an LLM router that decides which agent should handle a message, with structured (Pydantic) output.
-- **🔒 Privacy-aware resume handling** : resumes are parsed from PDF (via `PyMuPDF` / `fitz`) and PII (emails, phone numbers, LinkedIn/GitHub URLs) is masked **before** any text reaches the LLM.
+- **🔒 Privacy-aware resume handling** : resumes are parsed from PDF (via `Pypdf`) and PII (emails, phone numbers, LinkedIn/GitHub URLs) is masked **before** any text reaches the LLM.
 - **📊 Observability** : Prometheus metrics (`/metrics`), structured logging, and per-request execution traces.
 - **🖥️ Streamlit UI** : chat interface with agent-labeled responses, conditional resume upload, and an interview-mode input flow.
 
@@ -138,7 +138,7 @@ Then open the URL Streamlit prints (typically `http://localhost:8501`).
 ## 🧠 How the Interview Loop Works
 
 1. User asks for interview prep → router selects `interview` → a session starts (`interview_state.start_session`) and the first question is generated and stored as *pending*.
-2. User answers → the Coordinator sees an active session with a pending question, so it **skips the router entirely**, evaluates the answer, records it in the session history, and generates the next question — passing in every previously-asked question so the model doesn't repeat itself.
+2. User answers → the Coordinator sees an active session with a pending question, so it **skips the router entirely**, evaluates the answer, and generates the next question.
 3. This repeats indefinitely.
 4. User clicks **🏁 End Interview** → the UI sends the `__END_INTERVIEW__` sentinel → the Coordinator closes the session and returns a summary (questions answered, average score, full transcript).
 
@@ -146,7 +146,7 @@ Then open the URL Streamlit prints (typically `http://localhost:8501`).
 
 ## 🔐 Privacy
 
-- Resumes are parsed locally from PDF using `PyMuPDF` (`fitz`) — no external parsing service.
+- Resumes are parsed locally from PDF using `Pypdf`— no external parsing service.
 - `mask_pii()` strips emails, phone numbers, and LinkedIn/GitHub URLs from resume text **before** it is sent to the LLM.
 
 ---
